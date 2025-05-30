@@ -7,28 +7,34 @@ export enum UserStatusEnum {
 }
 
 export class UserStatus {
-  private readonly status: UserStatusEnum
+  private constructor(private readonly status: UserStatusEnum) {}
 
-  private constructor(status: UserStatusEnum) {
-    this.status = status
-  }
-
-  static create(status: UserStatusEnum): UserStatus {
-    if (!UserStatus.isValid(status)) {
-      throw new InvalidUserStatusError(`Invalid UserStatus: ${status}`)
-    }
+  private static _createValidated(status: UserStatusEnum): UserStatus {
     return new UserStatus(status)
   }
 
-  static isValid(status: string): boolean {
+  static create(status: UserStatusEnum): UserStatus {
+    if (!UserStatus.isValidEnum(status)) {
+      throw new InvalidUserStatusError(`Invalid UserStatus: "${status}"`)
+    }
+    return UserStatus._createValidated(status)
+  }
+
+  static isValidEnum(status: UserStatusEnum): boolean {
+    return Object.values(UserStatusEnum).includes(status)
+  }
+
+  static isValidString(status: string): boolean {
     return Object.values(UserStatusEnum).includes(status as UserStatusEnum)
   }
 
   static fromPersistence(status: string): UserStatus {
-    if (!UserStatus.isValid(status)) {
-      throw new InvalidUserStatusError(`Invalid UserStatus: ${status}`)
+    if (!UserStatus.isValidString(status)) {
+      // Usar la validación específica para string
+      throw new InvalidUserStatusError(`Invalid UserStatus from persistence: "${status}"`)
     }
-    return new UserStatus(status as UserStatusEnum)
+    // Asegurar que el string se convierta al enum para el constructor
+    return UserStatus._createValidated(status as UserStatusEnum)
   }
 
   getValue(): UserStatusEnum {
@@ -40,6 +46,14 @@ export class UserStatus {
   }
 
   equals(other: UserStatus): boolean {
+    if (!(other instanceof UserStatus)) {
+      return false
+    }
     return this.status === other.getValue()
   }
+
+  // Factory methods for easy change of status
+  static ACTIVE = UserStatus._createValidated(UserStatusEnum.ACTIVE)
+  static INACTIVE = UserStatus._createValidated(UserStatusEnum.INACTIVE)
+  static SUSPENDED = UserStatus._createValidated(UserStatusEnum.SUSPENDED)
 }
