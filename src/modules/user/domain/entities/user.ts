@@ -14,8 +14,8 @@ export type UserProps = {
   name: Name
   password: UserPassword
   role: UserRole
+  status: UserStatus
   phone?: Phone
-  status?: UserStatus
   address?: Address
   createdAt?: Date
   updatedAt?: Date
@@ -23,7 +23,7 @@ export type UserProps = {
 
 // For serialization to primitives
 export type UserPrimitives = {
-  id: string 
+  id: string
   email: string
   name: string
   password: string
@@ -48,18 +48,18 @@ export type UserPrimitives = {
 export class User {
   private constructor(private readonly userProps: UserProps) {
     if (!this.userProps.createdAt) {
-      this.userProps.createdAt = new Date();
+      this.userProps.createdAt = new Date()
     }
-  } 
+  }
 
   static create(userProps: UserProps): User {
-    const propsToUse = { ...userProps };
+    const propsToUse = { ...userProps }
 
     if (!propsToUse.createdAt) {
-      propsToUse.createdAt = new Date();
+      propsToUse.createdAt = new Date()
     }
 
-    propsToUse.updatedAt = undefined;
+    propsToUse.updatedAt = undefined
 
     User.validateRequiredFields(propsToUse)
     User.validateFieldsTypes(propsToUse)
@@ -68,10 +68,10 @@ export class User {
   }
 
   static fromPersistence(userFromPersistence: UserProps): User {
-    const propsToUse = { ...userFromPersistence };
+    const propsToUse = { ...userFromPersistence }
 
     if (!propsToUse.createdAt) {
-      propsToUse.createdAt = new Date();
+      propsToUse.createdAt = new Date()
     }
 
     User.validateRequiredFields(propsToUse)
@@ -81,14 +81,20 @@ export class User {
   }
 
   private static validateRequiredFields(userProps: UserProps): void {
-    const { id, email, name, password } = userProps
-    if (!id || !email || !name || !password) {
-      throw new MissingFieldError('Invalid User: id, email, name, and password fields are required')
+    const { id, email, name, password, role, status } = userProps
+    if (!id || !email || !name || !password || !role || !status) {
+      throw new MissingFieldError(
+        'Invalid User: id, email, name, password, role, and status fields are required',
+      )
     }
   }
 
   private static validateFieldsTypes(userProps: UserProps): void {
-    const { id, email, name, password, phone, address, status, role } = userProps
+    const { id, email, name, password, status, role, phone, address } = userProps
+
+    if (!(id instanceof UserId)) {
+      throw new TypeError('ID must be an instance of UserId value object')
+    }
 
     if (!(email instanceof Email)) {
       throw new TypeError('Email must be an instance of Email value object')
@@ -102,8 +108,12 @@ export class User {
       throw new TypeError('Password must be an instance of UserPassword value object')
     }
 
-    if (!(id instanceof UserId)) {
-      throw new TypeError('ID must be an instance of UserId value object')
+    if (!(status instanceof UserStatus)) {
+      throw new TypeError('Status must be an instance of UserStatus value object')
+    }
+
+    if (!(role instanceof UserRole)) {
+      throw new TypeError('Role must be an instance of UserRole value object')
     }
 
     if (phone && !(phone instanceof Phone)) {
@@ -113,113 +123,127 @@ export class User {
     if (address && !(address instanceof Address)) {
       throw new TypeError('Address must be an instance of Address value object')
     }
-
-    if (status && !(status instanceof UserStatus)) {
-      throw new TypeError('Status must be an instance of UserStatus value object')
-    }
-
-    if (role && !(role instanceof UserRole)) {
-      throw new TypeError('Role must be an instance of UserRole value object')
-    }
   }
 
-
+  getLastLoginAt(): Date | undefined {
+    return this.userProps.updatedAt
+  }
 
   public changeEmail(newEmail: Email): void {
     if (!(newEmail instanceof Email)) {
-      throw new TypeError('New email must be an instance of Email value object');
+      throw new TypeError('New email must be an instance of Email value object')
     }
     if (!this.userProps.email.equals(newEmail)) {
-      this.userProps.email = newEmail;
-      this.userProps.updatedAt = new Date();
+      this.userProps.email = newEmail
+      this.userProps.updatedAt = new Date()
     }
   }
 
   public changeName(newName: Name): void {
     if (!(newName instanceof Name)) {
-      throw new TypeError('New name must be an instance of Name value object');
+      throw new TypeError('New name must be an instance of Name value object')
     }
     if (!this.userProps.name.equals(newName)) {
-      this.userProps.name = newName;
-      this.userProps.updatedAt = new Date();
+      this.userProps.name = newName
+      this.userProps.updatedAt = new Date()
     }
   }
 
   public changePassword(newPassword: UserPassword): void {
     if (!(newPassword instanceof UserPassword)) {
-      throw new TypeError('New password must be an instance of UserPassword value object');
+      throw new TypeError('New password must be an instance of UserPassword value object')
     }
     if (!this.userProps.password.equals(newPassword)) {
-      this.userProps.password = newPassword;
-      this.userProps.updatedAt = new Date();
+      this.userProps.password = newPassword
+      this.userProps.updatedAt = new Date()
     }
   }
 
   public assignPhone(newPhone: Phone): void {
     if (!(newPhone instanceof Phone)) {
-      throw new TypeError('Phone must be an instance of Phone value object');
+      throw new TypeError('Phone must be an instance of Phone value object')
     }
     if (!this.userProps.phone?.equals(newPhone)) {
-      this.userProps.phone = newPhone;
-      this.userProps.updatedAt = new Date();
+      this.userProps.phone = newPhone
+      this.userProps.updatedAt = new Date()
     }
   }
 
   public removePhone(): void {
     if (this.userProps.phone !== undefined) {
-      this.userProps.phone = undefined;
-      this.userProps.updatedAt = new Date();
+      this.userProps.phone = undefined
+      this.userProps.updatedAt = new Date()
     }
   }
 
   public assignAddress(newAddress: Address): void {
     if (!(newAddress instanceof Address)) {
-      throw new TypeError('Address must be an instance of Address value object');
+      throw new TypeError('Address must be an instance of Address value object')
     }
 
     if (!this.userProps.address?.equals(newAddress)) {
-      this.userProps.address = newAddress;
-      this.userProps.updatedAt = new Date();
+      this.userProps.address = newAddress
+      this.userProps.updatedAt = new Date()
     }
   }
 
   public removeAddress(): void {
     if (this.userProps.address !== undefined) {
-      this.userProps.address = undefined;
-      this.userProps.updatedAt = new Date();
+      this.userProps.address = undefined
+      this.userProps.updatedAt = new Date()
     }
   }
 
   public changeStatus(newStatus: UserStatus): void {
     if (!(newStatus instanceof UserStatus)) {
-      throw new TypeError('Status must be an instance of UserStatus value object');
+      throw new TypeError('Status must be an instance of UserStatus value object')
     }
-    if (!this.userProps.status?.equals(newStatus)) {
-      this.userProps.status = newStatus;
-      this.userProps.updatedAt = new Date();
+    if (!this.userProps.status.equals(newStatus)) {
+      this.userProps.status = newStatus
+      this.userProps.updatedAt = new Date()
     }
   }
 
   public changeRole(newRole: UserRole): void {
     if (!(newRole instanceof UserRole)) {
-      throw new TypeError('Role must be an instance of UserRole value object');
+      throw new TypeError('Role must be an instance of UserRole value object')
     }
     if (!this.userProps.role.equals(newRole)) {
-      this.userProps.role = newRole;
-      this.userProps.updatedAt = new Date();
+      this.userProps.role = newRole
+      this.userProps.updatedAt = new Date()
     }
   }
 
-  getId(): UserId { return this.userProps.id; }
-  getEmail(): Email { return this.userProps.email; }
-  getName(): Name { return this.userProps.name; }
-  getPassword(): UserPassword { return this.userProps.password; }
-  getPhone(): Phone | undefined { return this.userProps.phone; }
-  getAddress(): Address | undefined { return this.userProps.address; }
-  getRole(): UserRole { return this.userProps.role; }
-  getStatus(): UserStatus | undefined { return this.userProps.status; }
-  getCreatedAt(): Date { return this.userProps.createdAt as Date; }
-  getUpdatedAt(): Date | undefined { return this.userProps.updatedAt; }
+  getId(): UserId {
+    return this.userProps.id
+  }
+  getEmail(): Email {
+    return this.userProps.email
+  }
+  getName(): Name {
+    return this.userProps.name
+  }
+  getPassword(): UserPassword {
+    return this.userProps.password
+  }
+  getPhone(): Phone | undefined {
+    return this.userProps.phone
+  }
+  getAddress(): Address | undefined {
+    return this.userProps.address
+  }
+  getRole(): UserRole {
+    return this.userProps.role
+  }
+  getStatus(): UserStatus | undefined {
+    return this.userProps.status
+  }
+  getCreatedAt(): Date {
+    return this.userProps.createdAt as Date
+  }
+  getUpdatedAt(): Date | undefined {
+    return this.userProps.updatedAt
+  }
 
   public toPrimitives(): UserPrimitives {
     return {
@@ -242,10 +266,10 @@ export class User {
   }
 
   equals(other: User): boolean {
-    if (!(other instanceof User)) return false;
+    if (!(other instanceof User)) return false
     if (this.userProps.id === undefined || other.userProps.id === undefined) {
-      return false;
+      return false
     }
-    return this.userProps.id.equals(other.userProps.id);
+    return this.userProps.id.equals(other.userProps.id)
   }
 }
