@@ -19,8 +19,7 @@ export class LoyaltyPoints extends ValueObject<LoyaltyPointsProps> {
     return new LoyaltyPoints({ value })
   }
 
-  public static fromPrimitives(value: number): LoyaltyPoints {
-    // Reutiliza el método create para asegurar la validación.
+  public static fromPersistence(value: number): LoyaltyPoints {
     return LoyaltyPoints.create(value)
   }
 

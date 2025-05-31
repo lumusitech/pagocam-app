@@ -26,7 +26,7 @@ export class Email extends ValueObject<EmailProps> {
     return new Email({ value: trimmedValue })
   }
 
-  public fromPersistence(value: string) {
+  public static fromPersistence(value: string) {
     if (!Email.isValid(value)) {
       throw new InvalidEmailError(`Invalid email format: ${value}`)
     }
