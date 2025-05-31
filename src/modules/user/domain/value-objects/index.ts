@@ -1,3 +1,4 @@
+export * from './LoyaltyPoints'
 export * from './UserId'
 export * from './UserPassword'
 export * from './UserRole'

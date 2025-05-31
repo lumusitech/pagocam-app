@@ -1,36 +1,51 @@
-import { InvalidName } from '../errors/generics/InvalidNameError'
+import { InvalidNameError } from '../errors/generics/InvalidNameError'
+import { ValueObject, ValueObjectProps } from './'
 
-export class Name {
-  private readonly value: string
+interface NameProps extends ValueObjectProps {
+  value: string
+}
 
-  constructor(name: string) {
-    if (!name || name.length < 3) {
-      throw new InvalidName('Invalid UserName: Valid name is required')
+export class Name extends ValueObject<NameProps> {
+  private constructor(props: NameProps) {
+    super(props)
+  }
+
+  public static create(value: string): Name {
+    if (!Name.isValid(value)) {
+      throw new InvalidNameError(value)
     }
-    this.value = name
+    return new Name({ value })
+  }
+
+  public static fromPersistence(value: string): Name {
+    return new Name({ value })
   }
 
   public getValue(): string {
-    return this.value
+    return this.props.value
   }
 
   public toString(): string {
-    return this.value
+    return this.props.value
   }
 
-  public static isValid(name: string): boolean {
-    return !!name && name.length >= 3
+  public static isValid(value: string): boolean {
+    return !!value && value.length >= 3
   }
 
-  public static fromString(name: string): Name {
-    return new Name(name)
+  public static fromString(value: string): Name {
+    return new Name({ value })
   }
 
   public static toString(name: Name): string {
     return name.getValue()
   }
 
+  public toPrimitives() {
+    return this.props.value
+  }
+
   public equals(other: Name): boolean {
-    return this.value === other.getValue()
+    return this.props.value === other.getValue()
   }
 }

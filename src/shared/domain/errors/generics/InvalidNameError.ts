@@ -1,7 +1,7 @@
-export class InvalidName extends Error {
+export class InvalidNameError extends Error {
   constructor(message: string = 'Invalid name') {
     super(message)
     this.name = 'InvalidName'
-    Object.setPrototypeOf(this, InvalidName.prototype)
+    Object.setPrototypeOf(this, InvalidNameError.prototype)
   }
 }

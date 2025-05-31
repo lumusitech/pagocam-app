@@ -1,5 +1,7 @@
+import { ValueObject, ValueObjectProps } from '../../../../shared/domain/value-objects'
 import { InvalidUserRoleError } from '../errors/InvalidUserRoleError'
 
+// Definimos el Enum para los roles de usuario
 export enum UserRoleEnum {
   USER = 'user',
   CLIENT = 'client',
@@ -8,51 +10,58 @@ export enum UserRoleEnum {
   SUPERADMIN = 'superadmin',
 }
 
-export class UserRole {
-  private readonly role: UserRoleEnum
+interface UserRoleProps extends ValueObjectProps {
+  value: UserRoleEnum
+}
 
-  private constructor(role: UserRoleEnum) {
-    this.role = role
+export class UserRole extends ValueObject<UserRoleProps> {
+  private constructor(props: UserRoleProps) {
+    super(props)
   }
 
-  private static _createValidated(role: UserRoleEnum): UserRole {
-    return new UserRole(role)
-  }
-
-  static create(role: UserRoleEnum): UserRole {
+  public static create(role: UserRoleEnum): UserRole {
     if (!UserRole.isValid(role)) {
       throw new InvalidUserRoleError(`Invalid UserRole: ${role}`)
     }
-    return this._createValidated(role)
+    return new UserRole({ value: role })
   }
 
-  static isValid(role: string): boolean {
+  public static fromPersistence(roleString: string): UserRole {
+    if (!UserRole.isValid(roleString)) {
+      throw new InvalidUserRoleError(`Invalid UserRole from persistence: ${roleString}`)
+    }
+
+    return new UserRole({ value: roleString as UserRoleEnum })
+  }
+
+  public static isValid(role: string): boolean {
     return Object.values(UserRoleEnum).includes(role as UserRoleEnum)
   }
 
-  static fromPersistence(role: string): UserRole {
-    if (!UserRole.isValid(role)) {
-      throw new InvalidUserRoleError(`Invalid UserRole: ${role}`)
+  public getValue(): UserRoleEnum {
+    return this.props.value
+  }
+
+  public equals(vo?: ValueObject<UserRoleProps>): boolean {
+    if (vo === null || vo === undefined || !(vo instanceof UserRole)) {
+      return false
     }
-    return new UserRole(role as UserRoleEnum)
+
+    return this.props.value === vo.props.value
   }
 
-  getValue(): UserRoleEnum {
-    return this.role
+  public toPrimitives(): string {
+    return this.props.value
   }
 
-  toString(): string {
-    return this.role
+  public toString(): string {
+    return this.props.value
   }
 
-  equals(other: UserRole): boolean {
-    return this.role === other.getValue()
-  }
-
-  // Static factory methods for common roles
-  static USER = UserRole._createValidated(UserRoleEnum.USER)
-  static CLIENT = UserRole._createValidated(UserRoleEnum.CLIENT)
-  static GUEST = UserRole._createValidated(UserRoleEnum.GUEST)
-  static ADMIN = UserRole._createValidated(UserRoleEnum.ADMIN)
-  static SUPERADMIN = UserRole._createValidated(UserRoleEnum.SUPERADMIN)
+  // factory methods for common roles
+  public static readonly USER = new UserRole({ value: UserRoleEnum.USER })
+  public static readonly CLIENT = new UserRole({ value: UserRoleEnum.CLIENT })
+  public static readonly GUEST = new UserRole({ value: UserRoleEnum.GUEST })
+  public static readonly ADMIN = new UserRole({ value: UserRoleEnum.ADMIN })
+  public static readonly SUPERADMIN = new UserRole({ value: UserRoleEnum.SUPERADMIN })
 }

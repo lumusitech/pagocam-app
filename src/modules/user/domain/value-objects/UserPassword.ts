@@ -1,37 +1,45 @@
+import { ValueObject, ValueObjectProps } from '../../../../shared/domain/value-objects'
 import { InvalidPasswordError } from '../errors/InvalidPasswordError'
 
-export class UserPassword {
-  private readonly password: string
+export interface UserPasswordProps extends ValueObjectProps {
+  value: string
+}
 
-  constructor(password: string) {
-    if (!password || password.length < 6) {
+export class UserPassword extends ValueObject<UserPasswordProps> {
+  private constructor(props: UserPasswordProps) {
+    super(props)
+  }
+
+  public static create(value: string) {
+    if (!value || value.length < 6) {
       throw new InvalidPasswordError('Invalid UserPassword: Valid password is required')
     }
-    this.password = password
+
+    return new UserPassword({ value })
   }
 
-  static isValid(password: string): boolean {
-    return !!password && password.length >= 6
+  static isValid(value: string): boolean {
+    return !!value && value.length >= 6
   }
 
-  static fromString(password: string): UserPassword {
-    return new UserPassword(password)
-  }
-
-  static fromPersistence(password: string): UserPassword {
-    if (!this.isValid(password)) {
+  static fromPersistence(value: string): UserPassword {
+    if (!this.isValid(value)) {
       throw new InvalidPasswordError(
         'Invalid UserPassword: Password does not meet the requirements',
       )
     }
-    return new UserPassword(password)
+    return new UserPassword({ value })
   }
 
   getHashedPassword(): string {
-    return this.password
+    return this.props.value
   }
 
   equals(other: UserPassword): boolean {
-    return this.password === other.getHashedPassword()
+    return this.props.value === other.getHashedPassword()
+  }
+
+  toPrimitives(): string {
+    return this.props.value
   }
 }

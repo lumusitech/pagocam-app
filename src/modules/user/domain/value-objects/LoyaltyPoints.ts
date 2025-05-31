@@ -1,4 +1,4 @@
-import { ValueObject, ValueObjectProps } from '../../../../shared/domain/value-objects/ValueObject'
+import { ValueObject, ValueObjectProps } from '../../../../shared/domain/value-objects'
 
 interface LoyaltyPointsProps extends ValueObjectProps {
   value: number

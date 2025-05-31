@@ -1,40 +1,47 @@
 import { InvalidPhoneError } from '../errors/InvalidPhoneError'
+import { ValueObject, ValueObjectProps } from './'
 import { ARGENTINIAN_CELLPHONE_REGEX } from './constants/ArgentinianCellPhone'
 
-export class Phone {
-  private readonly phoneNumber: string
+interface PhoneProps extends ValueObjectProps {
+  value: string
+}
 
-  private constructor(phoneNumber: string) {
-    this.phoneNumber = phoneNumber
+export class Phone extends ValueObject<PhoneProps> {
+  private constructor(props: PhoneProps) {
+    super(props)
   }
 
-  static create(phoneNumber: string): Phone {
-    if (!Phone.isValid(phoneNumber)) {
-      throw new InvalidPhoneError(`Invalid phone number: ${phoneNumber}`)
+  static create(value: string): Phone {
+    if (!Phone.isValid(value)) {
+      throw new InvalidPhoneError(`Invalid phone number: ${value}`)
     }
-    return new Phone(phoneNumber)
+    return new Phone({ value })
   }
 
   static isValid(phoneNumber: string): boolean {
     return ARGENTINIAN_CELLPHONE_REGEX.test(phoneNumber)
   }
 
-  static fromPersistence(phoneNumber: string): Phone {
-    if (!Phone.isValid(phoneNumber)) {
-      throw new InvalidPhoneError(`Invalid phone number from persistence: ${phoneNumber}`)
+  static fromPersistence(value: string): Phone {
+    if (!Phone.isValid(value)) {
+      throw new InvalidPhoneError(`Invalid phone number from persistence: ${value}`)
     }
-    return new Phone(phoneNumber)
+    return new Phone({ value })
   }
 
   getNormalizedNumber(): string {
-    return this.phoneNumber
+    return this.props.value
   }
 
   toString(): string {
-    return this.phoneNumber
+    return this.props.value
+  }
+
+  toPrimitives(): string {
+    return this.props.value
   }
 
   equals(other: Phone): boolean {
-    return this.phoneNumber === other.getNormalizedNumber()
+    return this.props.value === other.getNormalizedNumber()
   }
 }

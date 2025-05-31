@@ -1,38 +1,51 @@
+import { ValueObject, ValueObjectProps } from './'
+
 import {
   InvalidProvinceError,
   InvalidStreetNameError,
   InvalidZipCodeError,
 } from '../errors/address'
 
+// Importar errores genéricos
 import { InvalidArgumentError } from '../errors/generics'
 
-import {
-  ARGENTINIAN_PROVINCES,
-  ARGENTINIAN_STREET_NAME_REGEX,
-  ARGENTINIAN_ZIP_CODE_REGEX,
-} from './constants'
+import { ARGENTINIAN_PROVINCES, ARGENTINIAN_ZIP_CODE_REGEX } from './constants'
 
-interface AddressProps {
+interface AddressPropsInternal extends ValueObjectProps {
   readonly streetName: string
   readonly streetNumber: string
   readonly city: string
   readonly county?: string
   readonly zipCode?: string
-  readonly province?: string
+  readonly province: string
   readonly floor?: string
   readonly apartment?: string
   readonly description?: string
 }
 
-export class Address {
-  private constructor(private readonly props: AddressProps) {}
+export interface AddressInputProps {
+  streetName: string
+  streetNumber: string
+  city: string
+  county?: string
+  zipCode?: string
+  province?: string
+  floor?: string
+  apartment?: string
+  description?: string
+}
 
-  public static create(address: AddressProps): Address {
+export class Address extends ValueObject<AddressPropsInternal> {
+  private constructor(props: AddressPropsInternal) {
+    super(props)
+  }
+
+  public static create(address: AddressInputProps): Address {
     const validatedAndNormalizedProps = Address.prepareAndValidateProps(address)
     return new Address(validatedAndNormalizedProps)
   }
 
-  private static prepareAndValidateProps(addressProps: AddressProps): AddressProps {
+  private static prepareAndValidateProps(addressProps: AddressInputProps): AddressPropsInternal {
     const {
       streetName,
       streetNumber,
@@ -45,14 +58,14 @@ export class Address {
       description,
     } = addressProps
 
-    const normalizedProps: AddressProps = {
-      ...addressProps,
-      streetName: streetName.trim(),
-      streetNumber: streetNumber.trim(),
-      city: city.trim(),
+    // Normalize props
+    const normalizedProps: AddressInputProps = {
+      streetName: streetName ? streetName.trim() : '',
+      streetNumber: streetNumber ? streetNumber.trim() : '',
+      city: city ? city.trim() : '',
       county: county ? county.trim() : undefined,
       zipCode: zipCode ? zipCode.toUpperCase().trim() : undefined,
-      province: province ? province.trim() : '',
+      province: province ? province.trim() : undefined,
       apartment: apartment ? apartment.trim() : undefined,
       floor: floor ? floor.trim() : undefined,
       description: description ? description.trim() : undefined,
@@ -63,20 +76,29 @@ export class Address {
     Address.validateStreetNumber(normalizedProps.streetNumber)
     Address.validateCity(normalizedProps.city)
     Address.validateCounty(normalizedProps.county)
-    Address.validateZipCode(normalizedProps.zipCode)
-    ;(normalizedProps as { province: string }).province = Address.validateAndNormalizeProvince(
-      normalizedProps.province,
-    )
     Address.validateOptionalFields(
       normalizedProps.floor,
       normalizedProps.apartment,
       normalizedProps.description,
     )
 
-    return normalizedProps
+    Address.validateZipCode(normalizedProps.zipCode)
+    const normalizedProvince = Address.validateAndNormalizeProvince(normalizedProps.province)
+
+    return {
+      streetName: normalizedProps.streetName,
+      streetNumber: normalizedProps.streetNumber,
+      city: normalizedProps.city,
+      county: normalizedProps.county === '' ? undefined : normalizedProps.county,
+      zipCode: normalizedProps.zipCode === '' ? undefined : normalizedProps.zipCode,
+      province: normalizedProvince,
+      floor: normalizedProps.floor === '' ? undefined : normalizedProps.floor,
+      apartment: normalizedProps.apartment === '' ? undefined : normalizedProps.apartment,
+      description: normalizedProps.description === '' ? undefined : normalizedProps.description,
+    }
   }
 
-  private static validateRequiredFields(props: AddressProps): void {
+  private static validateRequiredFields(props: AddressInputProps): void {
     const { streetName, streetNumber, city } = props
     if (
       !streetName ||
@@ -100,12 +122,6 @@ export class Address {
 
   private static validateStreetNumber(streetNumber: string): void {
     if (streetNumber.length === 0) {
-      if (ARGENTINIAN_STREET_NAME_REGEX.test(streetNumber)) {
-        throw new InvalidArgumentError(
-          'Street number can only contain alphanumeric characters and spaces.',
-        )
-      }
-
       throw new InvalidArgumentError('Street number cannot be empty after trimming.')
     }
   }
@@ -117,24 +133,40 @@ export class Address {
   }
 
   private static validateCounty(county?: string): void {
-    if (county && county.length === 0) {
-      throw new InvalidArgumentError('County cannot be empty after trimming.')
+    if (county !== undefined && county.length === 0) {
+      throw new InvalidArgumentError('County cannot be an empty string if provided.')
     }
   }
 
   private static validateZipCode(zipCode?: string): void {
-    if (zipCode && zipCode.length < 4 && !ARGENTINIAN_ZIP_CODE_REGEX.test(zipCode)) {
-      throw new InvalidZipCodeError(zipCode)
+    if (zipCode !== undefined && zipCode.length > 0) {
+      if (!ARGENTINIAN_ZIP_CODE_REGEX.test(zipCode)) {
+        throw new InvalidZipCodeError(`Invalid ZipCode format: "${zipCode}"`)
+      }
     }
   }
 
   private static validateAndNormalizeProvince(province?: string): string {
-    const canonicalProvince = Array.from(ARGENTINIAN_PROVINCES).find(
-      p => p.toLowerCase() === province?.toLowerCase(),
-    )
-    if (!canonicalProvince) {
-      throw new InvalidProvinceError(province)
+    if (province === undefined || province.trim() === '') {
+      const defaultProvince = 'Buenos Aires'
+
+      if (!Array.from(ARGENTINIAN_PROVINCES).includes(defaultProvince)) {
+        console.error('Default province "Buenos Aires" not found in ARGENTINIAN_PROVINCES.')
+        throw new Error('Configuration Error: Default province is invalid.')
+      }
+      return defaultProvince
     }
+
+    const trimmedProvince = province.trim()
+
+    const canonicalProvince = Array.from(ARGENTINIAN_PROVINCES).find(
+      p => p.toLowerCase() === trimmedProvince.toLowerCase(),
+    )
+
+    if (!canonicalProvince) {
+      throw new InvalidProvinceError(trimmedProvince)
+    }
+
     return canonicalProvince
   }
 
@@ -143,17 +175,20 @@ export class Address {
     apartment?: string,
     description?: string,
   ): void {
-    if (floor && floor.length === 0) {
+    if (floor !== undefined && floor.length === 0) {
       throw new InvalidArgumentError('Floor cannot be an empty string if provided.')
     }
-    if (apartment && apartment.length === 0) {
+    if (apartment !== undefined && apartment.length === 0) {
       throw new InvalidArgumentError('Apartment cannot be an empty string if provided.')
     }
-    if (description && description.length === 0) {
+    if (description !== undefined && description.length === 0) {
       throw new InvalidArgumentError('Description cannot be an empty string if provided.')
     }
   }
 
+  /////////////////////////////////////////////////////////////
+
+  // Getters
   public getStreetName(): string {
     return this.props.streetName
   }
@@ -167,12 +202,12 @@ export class Address {
     return this.props.county
   }
 
-  public getZipCode(): string | null {
-    return this.props.zipCode ? this.props.zipCode : null
+  public getZipCode(): string | undefined {
+    return this.props.zipCode
   }
 
-  public getProvince(): string | null {
-    return this.props.province ? this.props.province : null
+  public getProvince(): string {
+    return this.props.province
   }
   public getFloor(): string | undefined {
     return this.props.floor
@@ -184,11 +219,7 @@ export class Address {
     return this.props.description
   }
 
-  public getAddress(): Address {
-    return this
-  }
-
-  public static isValid(address: AddressProps): boolean {
+  public static isValid(address: AddressInputProps): boolean {
     try {
       Address.prepareAndValidateProps(address)
       return true
@@ -197,31 +228,42 @@ export class Address {
     }
   }
 
-  static fromPersistence(props: AddressProps): Address {
+  public static fromPersistence(props: AddressInputProps): Address {
     const validatedAndNormalizedProps = Address.prepareAndValidateProps(props)
     return new Address(validatedAndNormalizedProps)
   }
 
   public toString(): string {
-    return `${this.props.streetName} ${this.props.streetNumber}, ${this.props.city}`
+    let fullAddress = `${this.props.streetName} ${this.props.streetNumber}`
+    if (this.props.floor) fullAddress += `, Piso ${this.props.floor}`
+    if (this.props.apartment) fullAddress += `, Depto ${this.props.apartment}`
+    fullAddress += `, ${this.props.city}`
+    if (this.props.county) fullAddress += `, ${this.props.county}`
+    if (this.props.province) fullAddress += `, ${this.props.province}` // Province siempre será string
+    if (this.props.zipCode) fullAddress += ` (${this.props.zipCode})`
+    return fullAddress
   }
 
-  public equals(other: Address): boolean {
-    if (!(other instanceof Address)) return false
+  public equals(vo?: ValueObject<AddressPropsInternal>): boolean {
+    // Primero, comprueba si el objeto es nulo, indefinido o no es una instancia de Address
+    if (vo === null || vo === undefined || !(vo instanceof Address)) {
+      return false
+    }
+
     return (
-      this.props.streetName === other.props.streetName &&
-      this.props.streetNumber === other.props.streetNumber &&
-      this.props.city === other.props.city &&
-      this.props.county === other.props.county &&
-      this.props.zipCode === other.props.zipCode &&
-      this.props.province === other.props.province &&
-      this.props.floor === other.props.floor &&
-      this.props.apartment === other.props.apartment &&
-      this.props.description === other.props.description
+      this.props.streetName === vo.props.streetName &&
+      this.props.streetNumber === vo.props.streetNumber &&
+      this.props.city === vo.props.city &&
+      this.props.county === vo.props.county &&
+      this.props.zipCode === vo.props.zipCode &&
+      this.props.province === vo.props.province &&
+      this.props.floor === vo.props.floor &&
+      this.props.apartment === vo.props.apartment &&
+      this.props.description === vo.props.description
     )
   }
 
-  public toPrimitives(): AddressProps {
+  public toPrimitives(): AddressPropsInternal {
     return { ...this.props }
   }
 }

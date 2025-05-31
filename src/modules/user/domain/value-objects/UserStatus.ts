@@ -1,3 +1,4 @@
+import { ValueObject, ValueObjectProps } from '../../../../shared/domain/value-objects'
 import { InvalidUserStatusError } from '../errors/InvalidUserStatusError'
 
 export enum UserStatusEnum {
@@ -6,54 +7,60 @@ export enum UserStatusEnum {
   SUSPENDED = 'suspended',
 }
 
-export class UserStatus {
-  private constructor(private readonly status: UserStatusEnum) {}
+interface UserStatusProps extends ValueObjectProps {
+  value: UserStatusEnum
+}
 
-  private static _createValidated(status: UserStatusEnum): UserStatus {
-    return new UserStatus(status)
+export class UserStatus extends ValueObject<UserStatusProps> {
+  private constructor(props: UserStatusProps) {
+    super(props)
   }
 
-  static create(status: UserStatusEnum): UserStatus {
+  public static create(status: UserStatusEnum): UserStatus {
     if (!UserStatus.isValidEnum(status)) {
       throw new InvalidUserStatusError(`Invalid UserStatus: "${status}"`)
     }
-    return UserStatus._createValidated(status)
+    return new UserStatus({ value: status })
   }
 
-  static isValidEnum(status: UserStatusEnum): boolean {
+  public static fromPersistence(statusString: string): UserStatus {
+    // Usamos isValidString para validar la entrada desde la persistencia
+    if (!UserStatus.isValidString(statusString)) {
+      throw new InvalidUserStatusError(`Invalid UserStatus from persistence: "${statusString}"`)
+    }
+    // Convertimos la cadena a UserStatusEnum y luego creamos la instancia
+    return new UserStatus({ value: statusString as UserStatusEnum })
+  }
+  public static isValidEnum(status: UserStatusEnum): boolean {
     return Object.values(UserStatusEnum).includes(status)
   }
 
-  static isValidString(status: string): boolean {
+  public static isValidString(status: string): boolean {
     return Object.values(UserStatusEnum).includes(status as UserStatusEnum)
   }
 
-  static fromPersistence(status: string): UserStatus {
-    if (!UserStatus.isValidString(status)) {
-      // Usar la validación específica para string
-      throw new InvalidUserStatusError(`Invalid UserStatus from persistence: "${status}"`)
-    }
-    // Asegurar que el string se convierta al enum para el constructor
-    return UserStatus._createValidated(status as UserStatusEnum)
+  public getValue(): UserStatusEnum {
+    return this.props.value
   }
 
-  getValue(): UserStatusEnum {
-    return this.status
-  }
-
-  toString(): string {
-    return this.status
-  }
-
-  equals(other: UserStatus): boolean {
-    if (!(other instanceof UserStatus)) {
+  public equals(vo?: ValueObject<UserStatusProps>): boolean {
+    if (vo === null || vo === undefined || !(vo instanceof UserStatus)) {
       return false
     }
-    return this.status === other.getValue()
+
+    return this.props.value === vo.props.value
   }
 
-  // Factory methods for easy change of status
-  static ACTIVE = UserStatus._createValidated(UserStatusEnum.ACTIVE)
-  static INACTIVE = UserStatus._createValidated(UserStatusEnum.INACTIVE)
-  static SUSPENDED = UserStatus._createValidated(UserStatusEnum.SUSPENDED)
+  public toPrimitives(): string {
+    return this.props.value
+  }
+
+  public toString(): string {
+    return this.props.value
+  }
+
+  // Factory methods for common statuses
+  public static readonly ACTIVE = new UserStatus({ value: UserStatusEnum.ACTIVE })
+  public static readonly INACTIVE = new UserStatus({ value: UserStatusEnum.INACTIVE })
+  public static readonly SUSPENDED = new UserStatus({ value: UserStatusEnum.SUSPENDED })
 }
