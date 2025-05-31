@@ -1,6 +1,6 @@
 import { BaseRepositoryOutputPort } from '../../../../../shared/domain/ports/output/BaseRepositoryOutputPort'
 import { Email } from '../../../../../shared/domain/value-objects'
-import { User } from '../../entities/user'
+import { User } from '../../entities/userV1'
 
 export interface UserRepositoryOutputPort extends BaseRepositoryOutputPort<User, string> {
   findByEmail(email: Email): Promise<User | null>
