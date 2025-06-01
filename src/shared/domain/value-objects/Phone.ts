@@ -1,5 +1,5 @@
 import { InvalidPhoneError } from '../errors/InvalidPhoneError'
-import { ValueObject, ValueObjectProps } from './'
+import { ValueObject, ValueObjectProps } from './ValueObject'
 import { ARGENTINIAN_CELLPHONE_REGEX } from './constants/ArgentinianCellPhone'
 
 interface PhoneProps extends ValueObjectProps {

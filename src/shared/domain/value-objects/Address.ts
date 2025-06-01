@@ -1,4 +1,4 @@
-import { ValueObject, ValueObjectProps } from './'
+import { ValueObject, ValueObjectProps } from './ValueObject'
 
 import {
   InvalidProvinceError,
@@ -6,10 +6,13 @@ import {
   InvalidZipCodeError,
 } from '../errors/address'
 
-// Importar errores genéricos
 import { InvalidArgumentError } from '../errors/generics'
 
-import { ARGENTINIAN_PROVINCES, ARGENTINIAN_ZIP_CODE_REGEX } from './constants'
+import {
+  ARGENTINIAN_COUNTY_REGEX,
+  ARGENTINIAN_PROVINCES,
+  ARGENTINIAN_ZIP_CODE_REGEX,
+} from './constants'
 
 interface AddressPropsInternal extends ValueObjectProps {
   readonly streetName: string
@@ -58,83 +61,119 @@ export class Address extends ValueObject<AddressPropsInternal> {
       description,
     } = addressProps
 
-    // Normalize props
-    const normalizedProps: AddressInputProps = {
-      streetName: streetName ? streetName.trim() : '',
-      streetNumber: streetNumber ? streetNumber.trim() : '',
-      city: city ? city.trim() : '',
-      county: county ? county.trim() : undefined,
-      zipCode: zipCode ? zipCode.toUpperCase().trim() : undefined,
-      province: province ? province.trim() : undefined,
-      apartment: apartment ? apartment.trim() : undefined,
-      floor: floor ? floor.trim() : undefined,
-      description: description ? description.trim() : undefined,
+    const normalizedPropsForValidation: AddressInputProps = {
+      streetName: streetName?.trim() ?? '', // if null/undefined, convert to ''
+      streetNumber: streetNumber?.trim() ?? '',
+      city: city?.trim() ?? '',
+
+      // Optional fields. If null return undefined else convert to ''
+      county: county === null ? undefined : county?.trim(),
+      zipCode: zipCode === null ? undefined : zipCode?.toUpperCase().trim(),
+      province: province === null ? undefined : province?.trim(),
+      apartment: apartment === null ? undefined : apartment?.trim(),
+      floor: floor === null ? undefined : floor?.trim(),
+      description: description === null ? undefined : description?.trim(),
     }
 
-    Address.validateRequiredFields(normalizedProps)
-    Address.validateStreetName(normalizedProps.streetName)
-    Address.validateStreetNumber(normalizedProps.streetNumber)
-    Address.validateCity(normalizedProps.city)
-    Address.validateCounty(normalizedProps.county)
+    // --- VALIDATIONS AND TRANSFORMATIONS ORDER ---
+
+    // 1. Validate required fields that cannot be empty after trimming.
+    Address.validateRequiredFields(normalizedPropsForValidation)
+
+    // 2. format and length Validations for trimmed required fields.
+    Address.validateStreetName(normalizedPropsForValidation.streetName)
+    Address.validateStreetNumber(normalizedPropsForValidation.streetNumber)
+    Address.validateCity(normalizedPropsForValidation.city)
+
+    // 3. optional fields validations, where `''` should be an error.
+    Address.validateCounty(normalizedPropsForValidation.county) // Valida '' y otras reglas de county
     Address.validateOptionalFields(
-      normalizedProps.floor,
-      normalizedProps.apartment,
-      normalizedProps.description,
+      normalizedPropsForValidation.floor,
+      normalizedPropsForValidation.apartment,
+      normalizedPropsForValidation.description,
     )
 
-    Address.validateZipCode(normalizedProps.zipCode)
-    const normalizedProvince = Address.validateAndNormalizeProvince(normalizedProps.province)
+    // 4. Other specific validations for optional fields.
+    Address.validateZipCode(normalizedPropsForValidation.zipCode)
+    const normalizedProvince = Address.validateAndNormalizeProvince(
+      normalizedPropsForValidation.province,
+    )
 
+    // 5. Finally, build the `AddressPropsInternal` object to be passed to the VO constructor.
+    // Here we convert empty strings of optional fields to `undefined` for the internal state of the Value Object,
+    // since they passed the validations.
     return {
-      streetName: normalizedProps.streetName,
-      streetNumber: normalizedProps.streetNumber,
-      city: normalizedProps.city,
-      county: normalizedProps.county === '' ? undefined : normalizedProps.county,
-      zipCode: normalizedProps.zipCode === '' ? undefined : normalizedProps.zipCode,
+      streetName: normalizedPropsForValidation.streetName,
+      streetNumber: normalizedPropsForValidation.streetNumber,
+      city: normalizedPropsForValidation.city,
+      // If an optional field is '', we make it undefined for the internal state of the VO.
+      county:
+        normalizedPropsForValidation.county === ''
+          ? undefined
+          : normalizedPropsForValidation.county,
+      zipCode:
+        normalizedPropsForValidation.zipCode === ''
+          ? undefined
+          : normalizedPropsForValidation.zipCode,
       province: normalizedProvince,
-      floor: normalizedProps.floor === '' ? undefined : normalizedProps.floor,
-      apartment: normalizedProps.apartment === '' ? undefined : normalizedProps.apartment,
-      description: normalizedProps.description === '' ? undefined : normalizedProps.description,
+      floor:
+        normalizedPropsForValidation.floor === '' ? undefined : normalizedPropsForValidation.floor,
+      apartment:
+        normalizedPropsForValidation.apartment === ''
+          ? undefined
+          : normalizedPropsForValidation.apartment,
+      description:
+        normalizedPropsForValidation.description === ''
+          ? undefined
+          : normalizedPropsForValidation.description,
     }
   }
 
   private static validateRequiredFields(props: AddressInputProps): void {
     const { streetName, streetNumber, city } = props
-    if (
-      !streetName ||
-      streetName.length === 0 ||
-      !streetNumber ||
-      streetNumber.length === 0 ||
-      !city ||
-      city.length === 0
-    ) {
+    // here we catch the case where any of these fields is undefined or an empty string
+    if (!streetName || !streetNumber || !city) {
       throw new InvalidArgumentError(
         'Address: All essential fields (streetName, streetNumber and city) are required and cannot be empty.',
       )
     }
   }
 
+  // Validations for required fields that are not empty after trimming
+  // These methods are called after validateRequiredFields to ensure the fields are not empty.
+  // If you want to add more specific validations (like length, format, etc.) for these fields,
+  // you can do it here.
   private static validateStreetName(streetName: string): void {
-    if (streetName.length === 0) {
-      throw new InvalidStreetNameError('Street name cannot be empty after trimming.')
+    if (streetName.length > 64) {
+      throw new InvalidStreetNameError('Street name cannot exceed 64 characters.')
     }
   }
 
   private static validateStreetNumber(streetNumber: string): void {
-    if (streetNumber.length === 0) {
-      throw new InvalidArgumentError('Street number cannot be empty after trimming.')
+    // Similar a validateStreetName, verificar la redundancia con validateRequiredFields
+    if (streetNumber.length > 32) {
+      // Redundante si validateRequiredFields ya lo hace
+      throw new InvalidArgumentError('Street number cannot exceed 32 characters.')
     }
   }
 
   private static validateCity(city: string): void {
-    if (city.length === 0) {
-      throw new InvalidArgumentError('City cannot be empty after trimming.')
+    if (city.length > 64) {
+      throw new InvalidArgumentError('City cannot exceed 64 characters.')
     }
   }
 
   private static validateCounty(county?: string): void {
     if (county !== undefined && county.length === 0) {
       throw new InvalidArgumentError('County cannot be an empty string if provided.')
+    }
+
+    if (county && county.length > 64) {
+      throw new InvalidArgumentError('County cannot exceed 64 characters.')
+    }
+
+    if (county && !ARGENTINIAN_COUNTY_REGEX.test(county)) {
+      throw new InvalidArgumentError('County can only contain letters, numbers and spaces.')
     }
   }
 
@@ -149,12 +188,7 @@ export class Address extends ValueObject<AddressPropsInternal> {
   private static validateAndNormalizeProvince(province?: string): string {
     if (province === undefined || province.trim() === '') {
       const defaultProvince = 'Buenos Aires'
-
-      if (!Array.from(ARGENTINIAN_PROVINCES).includes(defaultProvince)) {
-        console.error('Default province "Buenos Aires" not found in ARGENTINIAN_PROVINCES.')
-        throw new Error('Configuration Error: Default province is invalid.')
-      }
-      return defaultProvince
+      return defaultProvince // Default province is set to Buenos Aires
     }
 
     const trimmedProvince = province.trim()
@@ -245,7 +279,6 @@ export class Address extends ValueObject<AddressPropsInternal> {
   }
 
   public equals(vo?: ValueObject<AddressPropsInternal>): boolean {
-    // Primero, comprueba si el objeto es nulo, indefinido o no es una instancia de Address
     if (vo === null || vo === undefined || !(vo instanceof Address)) {
       return false
     }
@@ -261,6 +294,10 @@ export class Address extends ValueObject<AddressPropsInternal> {
       this.props.apartment === vo.props.apartment &&
       this.props.description === vo.props.description
     )
+  }
+
+  public static fromPrimitives(props: AddressPropsInternal): Address {
+    return new Address(props)
   }
 
   public toPrimitives(): AddressPropsInternal {

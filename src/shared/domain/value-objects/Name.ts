@@ -1,5 +1,5 @@
 import { InvalidNameError } from '../errors/generics/InvalidNameError'
-import { ValueObject, ValueObjectProps } from './'
+import { ValueObject, ValueObjectProps } from './ValueObject'
 
 interface NameProps extends ValueObjectProps {
   value: string
