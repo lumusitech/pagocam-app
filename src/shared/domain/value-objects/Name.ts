@@ -1,4 +1,5 @@
 import { InvalidNameError } from '../errors/generics/InvalidNameError'
+import { NAME_MAX_LENGTH, NAME_MIN_LENGTH, NAME_REGEX } from './constants'
 import { ValueObject, ValueObjectProps } from './ValueObject'
 
 interface NameProps extends ValueObjectProps {
@@ -12,12 +13,15 @@ export class Name extends ValueObject<NameProps> {
 
   public static create(value: string): Name {
     if (!Name.isValid(value)) {
-      throw new InvalidNameError(value)
+      throw new InvalidNameError(`Invalid name format`)
     }
     return new Name({ value })
   }
 
   public static fromPersistence(value: string): Name {
+    if (!Name.isValid(value)) {
+      throw new InvalidNameError(`Invalid name format`)
+    }
     return new Name({ value })
   }
 
@@ -30,15 +34,19 @@ export class Name extends ValueObject<NameProps> {
   }
 
   public static isValid(value: string): boolean {
-    return !!value && value.length >= 3
+    return (
+      !!value &&
+      value.length >= NAME_MIN_LENGTH &&
+      value.length <= NAME_MAX_LENGTH &&
+      NAME_REGEX.test(value)
+    )
   }
 
   public static fromString(value: string): Name {
+    if (!Name.isValid(value)) {
+      throw new InvalidNameError(`Invalid name format`)
+    }
     return new Name({ value })
-  }
-
-  public static toString(name: Name): string {
-    return name.getValue()
   }
 
   public toPrimitives() {
