@@ -20,17 +20,21 @@ export class Email extends ValueObject<EmailProps> {
       throw new InvalidEmailError('Email cannot be empty.')
     }
     const trimmedValue = value.trim().toLowerCase()
-    if (!EMAIL_REGEX.test(trimmedValue)) {
+    if (!Email.isValid(trimmedValue)) {
       throw new InvalidEmailError(`Invalid email format: "${value}"`)
     }
     return new Email({ value: trimmedValue })
   }
 
   public static fromPersistence(value: string) {
-    if (!Email.isValid(value)) {
-      throw new InvalidEmailError(`Invalid email format: ${value}`)
+    if (!value || value.trim().length === 0) {
+      throw new InvalidEmailError('Email cannot be empty.')
     }
-    return new Email({ value })
+    const trimmedValue = value.trim().toLowerCase()
+    if (!Email.isValid(trimmedValue)) {
+      throw new InvalidEmailError(`Invalid email format: "${value}"`)
+    }
+    return new Email({ value: trimmedValue })
   }
 
   public getValue(): string {
