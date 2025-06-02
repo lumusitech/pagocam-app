@@ -23,6 +23,7 @@ export default defineConfig({
         '**/*.test.ts',
         '**/*.spec.ts',
         '**/index.ts',
+        '**/Specification.ts',
       ],
     },
   },
