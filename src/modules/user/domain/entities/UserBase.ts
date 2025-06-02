@@ -195,7 +195,7 @@ export abstract class UserBase implements User {
       name: this.userProps.name.getValue(),
       password: this.userProps.password.getHashedPassword(),
       role: this.userProps.role.getValue(),
-      phone: this.userProps.phone?.getNormalizedNumber(),
+      phone: this.userProps.phone?.getPhoneNumber(),
       status: this.userProps.status.getValue(),
       address: this.userProps.address?.toPrimitives(),
       createdAt: this.userProps.createdAt,

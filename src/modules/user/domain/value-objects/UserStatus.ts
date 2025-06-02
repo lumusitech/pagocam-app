@@ -1,4 +1,4 @@
-import { ValueObject, ValueObjectProps } from '../../../../shared/domain/value-objects'
+import { ValueObject, ValueObjectProps } from '@shared/domain/value-objects/ValueObject'
 import { InvalidUserStatusError } from '../errors/InvalidUserStatusError'
 
 export enum UserStatusEnum {
