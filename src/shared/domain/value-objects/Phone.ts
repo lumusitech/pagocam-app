@@ -13,7 +13,7 @@ export class Phone extends ValueObject<PhoneProps> {
 
   static create(value: string): Phone {
     if (!Phone.isValid(value)) {
-      throw new InvalidPhoneError(`Invalid phone number: ${value}`)
+      throw new InvalidPhoneError('Invalid phone number')
     }
     return new Phone({ value })
   }
@@ -24,12 +24,12 @@ export class Phone extends ValueObject<PhoneProps> {
 
   static fromPersistence(value: string): Phone {
     if (!Phone.isValid(value)) {
-      throw new InvalidPhoneError(`Invalid phone number from persistence: ${value}`)
+      throw new InvalidPhoneError('Invalid phone number from persistence')
     }
     return new Phone({ value })
   }
 
-  getNormalizedNumber(): string {
+  getPhoneNumber(): string {
     return this.props.value
   }
 
@@ -42,6 +42,6 @@ export class Phone extends ValueObject<PhoneProps> {
   }
 
   equals(other: Phone): boolean {
-    return this.props.value === other.getNormalizedNumber()
+    return this.props.value === other.getPhoneNumber()
   }
 }
