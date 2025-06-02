@@ -6,5 +6,24 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
+    exclude: ['**/node_modules/**', '**/dist/**', '**/cypress/**', '**/index.ts'],
+
+    include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+
+    coverage: {
+      enabled: true,
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: './coverage',
+
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/cypress/**',
+        '**/*.d.ts',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+        '**/index.ts',
+      ],
+    },
   },
 })
