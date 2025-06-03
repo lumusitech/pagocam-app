@@ -20,6 +20,15 @@ describe('Status Value Object', () => {
     expect(status.toString()).toBe('inactive')
   })
 
+  it('should create a Status with value "suspended"', () => {
+    const statusProps = { value: 'suspended' }
+    const status = new Status(statusProps)
+    expect(status.isActive()).toBe(false)
+    expect(status.isInactive()).toBe(false)
+    expect(status.isSuspended()).toBe(true)
+    expect(status.toString()).toBe('suspended')
+  })
+
   it('should compare equality of two Status objects with same value', () => {
     const statusProps = { value: 'active' }
     const status1 = new Status(statusProps)
@@ -33,5 +42,10 @@ describe('Status Value Object', () => {
     const status1 = new Status(statusProps1)
     const status2 = new Status(statusProps2)
     expect(status1.equals(status2)).toBe(false)
+  })
+
+  it('should compare and return false with undefined value', () => {
+    const status = new Status({ value: 'active' })
+    expect(status.equals(undefined)).toBe(false)
   })
 })
