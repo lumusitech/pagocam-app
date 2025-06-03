@@ -3,7 +3,8 @@ import { Status } from './Status'
 
 describe('Status Value Object', () => {
   it('should create a Status with value "active"', () => {
-    const status = Status.create('active')
+    const statusProps = { value: 'active' }
+    const status = new Status(statusProps)
     expect(status.getValue()).toBe('active')
     expect(status.isActive()).toBe(true)
     expect(status.isInactive()).toBe(false)
@@ -11,7 +12,8 @@ describe('Status Value Object', () => {
   })
 
   it('should create a Status with value "inactive"', () => {
-    const status = Status.create('inactive')
+    const statusProps = { value: 'inactive' }
+    const status = new Status(statusProps)
     expect(status.getValue()).toBe('inactive')
     expect(status.isActive()).toBe(false)
     expect(status.isInactive()).toBe(true)
@@ -19,14 +21,17 @@ describe('Status Value Object', () => {
   })
 
   it('should compare equality of two Status objects with same value', () => {
-    const status1 = Status.create('active')
-    const status2 = Status.create('active')
+    const statusProps = { value: 'active' }
+    const status1 = new Status(statusProps)
+    const status2 = new Status(statusProps)
     expect(status1.equals(status2)).toBe(true)
   })
 
   it('should compare inequality of two Status objects with different values', () => {
-    const status1 = Status.create('active')
-    const status2 = Status.create('inactive')
+    const statusProps1 = { value: 'active' }
+    const statusProps2 = { value: 'inactive' }
+    const status1 = new Status(statusProps1)
+    const status2 = new Status(statusProps2)
     expect(status1.equals(status2)).toBe(false)
   })
 })

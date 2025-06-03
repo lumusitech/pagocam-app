@@ -1,20 +1,15 @@
-import { CommonStatusType } from '@shared/domain/types/CommonStatusType'
-import { ValueObject, ValueObjectProps } from '@shared/domain/value-objects/ValueObject'
+import { ValueObject, ValueObjectProps } from './ValueObject'
 
-interface StatusProps extends ValueObjectProps {
-  value: CommonStatusType
+interface StatusProps<T extends string> extends ValueObjectProps {
+  value: T
 }
 
-export class Status extends ValueObject<StatusProps> {
-  private constructor(props: StatusProps) {
+export class Status<T extends string> extends ValueObject<StatusProps<T>> {
+  constructor(props: StatusProps<T>) {
     super(props)
   }
 
-  public static create(statusValue: CommonStatusType): Status {
-    return new Status({ value: statusValue })
-  }
-
-  public getValue(): CommonStatusType {
+  public getValue(): T {
     return this.props.value
   }
 
@@ -26,11 +21,18 @@ export class Status extends ValueObject<StatusProps> {
     return this.props.value === 'inactive'
   }
 
-  equals(other: ValueObject<StatusProps>): boolean {
-    return this.props.value === other.props.value
+  public isSuspended(): boolean {
+    return this.props.value === 'suspended'
   }
 
-  toString(): string {
+  public toString(): string {
     return this.props.value
+  }
+
+  public equals(other?: Status<T>): boolean {
+    if (!other || !(other instanceof Status)) {
+      return false
+    }
+    return this.props.value === other.props.value
   }
 }
