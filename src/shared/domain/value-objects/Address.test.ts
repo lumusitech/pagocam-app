@@ -1,6 +1,11 @@
-import { InvalidProvinceError, InvalidZipCodeError } from '../errors/address'
+import {
+  InvalidProvinceError,
+  InvalidStreetNameError,
+  InvalidStreetNumberError,
+  InvalidZipCodeError,
+} from '../errors/address'
 import { InvalidArgumentError } from '../errors/generics'
-import { Address } from './Address'
+import { Address, AddressInputProps } from './Address'
 
 describe('Address Value Object', () => {
   it('should create a valid Address with all required properties', () => {
@@ -64,7 +69,6 @@ describe('Address Value Object', () => {
       streetName: '', // Invalid
       streetNumber: '100',
       city: 'CABA',
-      province: 'Buenos Aires',
     }
     expect(() => Address.create(invalidProps)).toThrow(InvalidArgumentError)
     expect(() => Address.create(invalidProps)).toThrow(
@@ -72,17 +76,36 @@ describe('Address Value Object', () => {
     )
   })
 
+  it('should throw an error for invalid too long streetName', () => {
+    const invalidProps = {
+      streetName: 'A'.repeat(65), // Invalid - limit of 64 characters
+      streetNumber: '100',
+      city: 'CABA',
+    }
+    expect(() => Address.create(invalidProps)).toThrow(InvalidStreetNameError)
+    expect(() => Address.create(invalidProps)).toThrow('Street name cannot exceed 64 characters.')
+  })
+
   it('should throw an error for invalid streetNumber', () => {
     const invalidProps = {
       streetName: 'Rivadavia',
       streetNumber: '', // Invalid
       city: 'CABA',
-      province: 'Buenos Aires',
     }
     expect(() => Address.create(invalidProps)).toThrow(InvalidArgumentError)
     expect(() => Address.create(invalidProps)).toThrow(
       'Address: All essential fields (streetName, streetNumber and city) are required and cannot be empty.',
     )
+  })
+
+  it('should throw an error for invalid too long streetNumber', () => {
+    const invalidProps = {
+      streetName: 'Rivadavia',
+      streetNumber: '1'.repeat(33), // Invalid - limit of 32 characters
+      city: 'CABA',
+    }
+    expect(() => Address.create(invalidProps)).toThrow(InvalidStreetNumberError)
+    expect(() => Address.create(invalidProps)).toThrow('Street number cannot exceed 32 characters.')
   })
 
   it('should throw an error for invalid city', () => {
@@ -140,6 +163,36 @@ describe('Address Value Object', () => {
       county: 'A'.repeat(65), // with limit of 64 characters
     }
     expect(() => Address.create(invalidProps)).toThrow(InvalidArgumentError)
+  })
+
+  it('should set county as undefined if pass a empty string', () => {
+    const invalidProps = {
+      streetName: 'Rivadavia',
+      streetNumber: '100',
+      city: 'CABA',
+      county: '', // Invalid
+    }
+    expect(() => Address.create(invalidProps)).toThrow(InvalidArgumentError)
+    expect(() => Address.create(invalidProps)).toThrow(
+      'County cannot be an empty string if provided.',
+    )
+  })
+
+  // if (county && !ARGENTINIAN_COUNTY_REGEX.test(county)) {
+  //   throw new InvalidArgumentError('County can only contain letters, numbers and spaces.')
+  // }
+  it('should throw an error if county contains invalid characters', () => {
+    const invalidProps = {
+      streetName: 'Rivadavia',
+      streetNumber: '100',
+      city: 'CABA',
+      province: 'Buenos Aires',
+      county: 'Invalid#%^&County', // Invalid
+    }
+    expect(() => Address.create(invalidProps)).toThrow(InvalidArgumentError)
+    expect(() => Address.create(invalidProps)).toThrow(
+      'County can only contain letters, numbers and spaces.',
+    )
   })
 
   it('should throw an error if floor is empty', () => {
@@ -380,5 +433,40 @@ describe('Address Value Object', () => {
     const address1 = Address.create({ ...baseProps, floor: '1' })
     const address2 = Address.create(baseProps) // floor is undefined
     expect(address1.equals(address2)).toBe(false)
+  })
+
+  it('should return true if AddressInputProps are valid', () => {
+    const addressProps: AddressInputProps = {
+      streetName: 'Rivadavia',
+      streetNumber: '100',
+      city: 'CABA',
+    }
+
+    const isValid = Address.isValid(addressProps)
+    expect(isValid).toBe(true)
+  })
+
+  it('should return false if AddressInputProps are not valid', () => {
+    const addressProps: AddressInputProps = {
+      streetName: 'Rivadavia',
+      streetNumber: '100',
+      city: 'A'.repeat(65),
+    }
+
+    const isValid = Address.isValid(addressProps)
+    expect(isValid).toBe(false)
+  })
+
+  //fromPersistence test
+  it('should create a valid Address from persistence', () => {
+    const addressProps: AddressInputProps = {
+      streetName: 'Rivadavia',
+      streetNumber: '100',
+      city: 'CABA',
+      province: 'Buenos Aires',
+      zipCode: 'B1615DAB',
+    }
+    const address = Address.fromPersistence(addressProps)
+    expect(address).toBeInstanceOf(Address)
   })
 })

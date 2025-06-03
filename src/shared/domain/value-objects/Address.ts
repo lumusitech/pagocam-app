@@ -3,6 +3,7 @@ import { ValueObject, ValueObjectProps } from './ValueObject'
 import {
   InvalidProvinceError,
   InvalidStreetNameError,
+  InvalidStreetNumberError,
   InvalidZipCodeError,
 } from '../errors/address'
 
@@ -48,6 +49,11 @@ export class Address extends ValueObject<AddressPropsInternal> {
     return new Address(validatedAndNormalizedProps)
   }
 
+  public static fromPrimitives(props: AddressPropsInternal): Address {
+    const validatedAndNormalizedProps = Address.prepareAndValidateProps(props)
+    return new Address(validatedAndNormalizedProps)
+  }
+
   private static prepareAndValidateProps(addressProps: AddressInputProps): AddressPropsInternal {
     const {
       streetName,
@@ -86,7 +92,7 @@ export class Address extends ValueObject<AddressPropsInternal> {
     Address.validateCity(normalizedPropsForValidation.city)
 
     // 3. optional fields validations, where `''` should be an error.
-    Address.validateCounty(normalizedPropsForValidation.county) // Valida '' y otras reglas de county
+    Address.validateCounty(normalizedPropsForValidation.county)
     Address.validateOptionalFields(
       normalizedPropsForValidation.floor,
       normalizedPropsForValidation.apartment,
@@ -106,26 +112,12 @@ export class Address extends ValueObject<AddressPropsInternal> {
       streetName: normalizedPropsForValidation.streetName,
       streetNumber: normalizedPropsForValidation.streetNumber,
       city: normalizedPropsForValidation.city,
-      // If an optional field is '', we make it undefined for the internal state of the VO.
-      county:
-        normalizedPropsForValidation.county === ''
-          ? undefined
-          : normalizedPropsForValidation.county,
-      zipCode:
-        normalizedPropsForValidation.zipCode === ''
-          ? undefined
-          : normalizedPropsForValidation.zipCode,
+      county: normalizedPropsForValidation.county,
+      zipCode: normalizedPropsForValidation.zipCode,
       province: normalizedProvince,
-      floor:
-        normalizedPropsForValidation.floor === '' ? undefined : normalizedPropsForValidation.floor,
-      apartment:
-        normalizedPropsForValidation.apartment === ''
-          ? undefined
-          : normalizedPropsForValidation.apartment,
-      description:
-        normalizedPropsForValidation.description === ''
-          ? undefined
-          : normalizedPropsForValidation.description,
+      floor: normalizedPropsForValidation.floor,
+      apartment: normalizedPropsForValidation.apartment,
+      description: normalizedPropsForValidation.description,
     }
   }
 
@@ -153,7 +145,7 @@ export class Address extends ValueObject<AddressPropsInternal> {
     // Similar a validateStreetName, verificar la redundancia con validateRequiredFields
     if (streetNumber.length > 32) {
       // Redundante si validateRequiredFields ya lo hace
-      throw new InvalidArgumentError('Street number cannot exceed 32 characters.')
+      throw new InvalidStreetNumberError('Street number cannot exceed 32 characters.')
     }
   }
 
@@ -294,10 +286,6 @@ export class Address extends ValueObject<AddressPropsInternal> {
       this.props.apartment === vo.props.apartment &&
       this.props.description === vo.props.description
     )
-  }
-
-  public static fromPrimitives(props: AddressPropsInternal): Address {
-    return new Address(props)
   }
 
   public toPrimitives(): AddressPropsInternal {
