@@ -11,9 +11,19 @@ export class UserPassword extends ValueObject<UserPasswordProps> {
   }
 
   public static create(value: string) {
-    if (!value || value.length < 6) {
-      throw new InvalidPasswordError('Invalid UserPassword: Valid password is required')
-    }
+    if (!value) throw new InvalidPasswordError('Password should not be empty')
+
+    if (!!value && value.length < 6)
+      throw new InvalidPasswordError('Password should be at least 6 characters long')
+
+    return new UserPassword({ value })
+  }
+
+  static fromPersistence(value: string): UserPassword {
+    if (!value) throw new InvalidPasswordError('Password should not be empty')
+
+    if (value && value.length < 6)
+      throw new InvalidPasswordError('Password should be at least 6 characters long')
 
     return new UserPassword({ value })
   }
@@ -22,24 +32,15 @@ export class UserPassword extends ValueObject<UserPasswordProps> {
     return !!value && value.length >= 6
   }
 
-  static fromPersistence(value: string): UserPassword {
-    if (!this.isValid(value)) {
-      throw new InvalidPasswordError(
-        'Invalid UserPassword: Password does not meet the requirements',
-      )
-    }
-    return new UserPassword({ value })
-  }
-
-  getHashedPassword(): string {
+  getValue(): string {
     return this.props.value
   }
 
   equals(other: UserPassword): boolean {
-    return this.props.value === other.getHashedPassword()
+    return this.props.value === other.getValue()
   }
 
-  toPrimitives(): string {
+  public toString(): string {
     return this.props.value
   }
 }
