@@ -1,4 +1,5 @@
 import { ValueObject, ValueObjectProps } from '@shared/domain/value-objects/ValueObject'
+import { InvalidUserIdError } from '../errors/InvalidUserIdError'
 
 interface UserIdProps extends ValueObjectProps {
   value: string
@@ -10,10 +11,12 @@ export class UserId extends ValueObject<UserIdProps> {
   }
 
   public static create(value: string): UserId {
+    if (!value) throw new InvalidUserIdError('Id cannot be empty.')
     return new UserId({ value })
   }
 
   public static fromPersistence(value: string): UserId {
+    if (!value) throw new InvalidUserIdError('Id cannot be empty.')
     return new UserId({ value })
   }
 
@@ -22,10 +25,6 @@ export class UserId extends ValueObject<UserIdProps> {
   }
 
   toString(): string {
-    return this.props.value
-  }
-
-  public toPrimitives() {
     return this.props.value
   }
 
