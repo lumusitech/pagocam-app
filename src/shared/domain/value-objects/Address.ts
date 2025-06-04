@@ -1,6 +1,7 @@
 import { ValueObject, ValueObjectProps } from './ValueObject'
 
 import {
+  InvalidAddressError,
   InvalidProvinceError,
   InvalidStreetNameError,
   InvalidStreetNumberError,
@@ -125,7 +126,7 @@ export class Address extends ValueObject<AddressPropsInternal> {
     const { streetName, streetNumber, city } = props
     // here we catch the case where any of these fields is undefined or an empty string
     if (!streetName || !streetNumber || !city) {
-      throw new InvalidArgumentError(
+      throw new InvalidAddressError(
         'Address: All essential fields (streetName, streetNumber and city) are required and cannot be empty.',
       )
     }

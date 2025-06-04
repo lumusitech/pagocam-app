@@ -1,4 +1,5 @@
 import {
+  InvalidAddressError,
   InvalidProvinceError,
   InvalidStreetNameError,
   InvalidStreetNumberError,
@@ -70,7 +71,7 @@ describe('Address Value Object', () => {
       streetNumber: '100',
       city: 'CABA',
     }
-    expect(() => Address.create(invalidProps)).toThrow(InvalidArgumentError)
+    expect(() => Address.create(invalidProps)).toThrow(InvalidAddressError)
     expect(() => Address.create(invalidProps)).toThrow(
       'Address: All essential fields (streetName, streetNumber and city) are required and cannot be empty.',
     )
@@ -92,7 +93,7 @@ describe('Address Value Object', () => {
       streetNumber: '', // Invalid
       city: 'CABA',
     }
-    expect(() => Address.create(invalidProps)).toThrow(InvalidArgumentError)
+    expect(() => Address.create(invalidProps)).toThrow(InvalidAddressError)
     expect(() => Address.create(invalidProps)).toThrow(
       'Address: All essential fields (streetName, streetNumber and city) are required and cannot be empty.',
     )
@@ -115,7 +116,7 @@ describe('Address Value Object', () => {
       city: '', // Invalid
       province: 'Buenos Aires',
     }
-    expect(() => Address.create(invalidProps)).toThrow(InvalidArgumentError)
+    expect(() => Address.create(invalidProps)).toThrow(InvalidAddressError)
     expect(() => Address.create(invalidProps)).toThrow(
       'Address: All essential fields (streetName, streetNumber and city) are required and cannot be empty.',
     )
