@@ -27,6 +27,7 @@ export default defineConfig({
         '**/constants/**',
         '**/ports/**',
         '**/types/**',
+        '**/errors/**',
       ],
     },
   },
