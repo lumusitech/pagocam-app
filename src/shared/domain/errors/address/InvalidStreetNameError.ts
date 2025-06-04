@@ -1,5 +1,5 @@
 export class InvalidStreetNameError extends Error {
-  constructor(message: string = 'Invalid street name') {
+  constructor(message: string) {
     super(message)
     this.name = 'InvalidStreetNameError'
     Object.setPrototypeOf(this, InvalidStreetNameError.prototype)

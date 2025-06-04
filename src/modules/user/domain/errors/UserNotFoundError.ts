@@ -1,17 +1,9 @@
-import {
-  NotFoundError,
-  NotFoundErrorProps,
-} from '../../../../shared/domain/errors/generics/NotFoundError'
+import { NotFoundError } from '@shared/domain/errors/generics/NotFoundError'
 
 export class UserNotFoundError extends NotFoundError {
-  constructor(id: string) {
-    const props: NotFoundErrorProps = {
-      entityName: 'User',
-      id,
-    }
-    super(props)
+  constructor(message: string) {
+    super(message)
     this.name = 'UserNotFoundError'
-
     Object.setPrototypeOf(this, UserNotFoundError.prototype)
   }
 }

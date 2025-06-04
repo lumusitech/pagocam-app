@@ -1,5 +1,5 @@
 export class InvalidUserStatusError extends Error {
-  constructor(message: string = 'Invalid user status') {
+  constructor(message: string) {
     super(message)
     this.name = 'InvalidUserStatusError'
     Object.setPrototypeOf(this, InvalidUserStatusError.prototype)

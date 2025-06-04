@@ -1,5 +1,5 @@
 export class InvalidAddressError extends Error {
-  constructor(message: string = 'Invalid address') {
+  constructor(message: string) {
     super(message)
     this.name = 'InvalidAddressError'
     Object.setPrototypeOf(this, InvalidAddressError.prototype)
