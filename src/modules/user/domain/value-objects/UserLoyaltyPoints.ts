@@ -10,12 +10,14 @@ export class LoyaltyPoints extends ValueObject<LoyaltyPointsProps> {
   }
 
   public static create(value: number): LoyaltyPoints {
-    if (value < 0) {
-      throw new Error('Loyalty points cannot be negative.')
-    }
     if (!Number.isInteger(value)) {
       throw new Error('Loyalty points must be an integer.')
     }
+
+    if (value < 0) {
+      throw new Error('Loyalty points cannot be negative.')
+    }
+
     return new LoyaltyPoints({ value })
   }
 
@@ -39,11 +41,16 @@ export class LoyaltyPoints extends ValueObject<LoyaltyPointsProps> {
       throw new Error('Cannot subtract a negative amount. Use add instead.')
     }
     const newValue = this.props.value - amount
+
+    if (newValue < 0) {
+      throw new Error('Cannot subtract more points than available.')
+    }
+
     return LoyaltyPoints.create(newValue)
   }
 
-  public toPrimitives(): number {
-    return this.props.value
+  public toString(): string {
+    return this.props.value.toString()
   }
 
   public equals(vo?: ValueObject<LoyaltyPointsProps>): boolean {

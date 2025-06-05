@@ -1,5 +1,5 @@
-export * from './LoyaltyPoints'
 export * from './UserId'
+export * from './UserLoyaltyPoints'
 export * from './UserPassword'
 export * from './UserRole'
 export * from './UserStatus'

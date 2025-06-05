@@ -3,7 +3,7 @@ import { Address, Email, Name, Phone } from '../../../../shared/domain/value-obj
 import { InvalidUserRoleError } from '../errors/InvalidUserRoleError'
 
 import { UserId, UserPassword, UserRole, UserStatus, UserStatusEnum } from '../value-objects' // Assuming these are in users/domain/value-objects
-import { LoyaltyPoints } from '../value-objects/LoyaltyPoints'
+import { LoyaltyPoints } from '../value-objects/UserLoyaltyPoints'
 import { CommonUserProps, UserBase, UserPrimitives } from './UserBase'
 
 // Extend UserPrimitives for Client-specific fields
