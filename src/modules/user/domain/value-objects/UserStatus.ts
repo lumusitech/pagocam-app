@@ -2,6 +2,7 @@ import { CommonStatus } from '@shared/domain/constants/CommonStatus'
 import { Status } from '@shared/domain/value-objects/Status'
 import { ValueObjectProps } from '@shared/domain/value-objects/ValueObject'
 import { UserSpecificStatus } from '../constants/UserSpecificStatus'
+import { InvalidUserStatusError } from '../errors/InvalidUserStatusError'
 import { UserStatusType } from '../types/UserStatusType'
 
 interface UserStatusProps extends ValueObjectProps {
@@ -14,20 +15,29 @@ export class UserStatus extends Status<UserStatusType> {
   }
 
   public static create(statusValue: UserStatusType): UserStatus {
+    if (!UserStatus.isValid(statusValue)) {
+      throw new InvalidUserStatusError(`Invalid UserStatus value: "${statusValue}"`)
+    }
     return new UserStatus({ value: statusValue })
   }
 
   public static fromPersistence(statusValue: string): UserStatus {
+    if (!UserStatus.isValid(statusValue)) {
+      throw new InvalidUserStatusError(
+        `Invalid UserStatus value from persistence: "${statusValue}"`,
+      )
+    }
+
+    return new UserStatus({ value: statusValue as UserStatusType })
+  }
+
+  private static isValid(statusValue: string): boolean {
     const validStatuses: string[] = [
       ...Object.values(CommonStatus),
       ...Object.values(UserSpecificStatus),
     ]
 
-    if (!validStatuses.includes(statusValue)) {
-      throw new Error(`Invalid UserStatus value from persistence: "${statusValue}"`)
-    }
-
-    return new UserStatus({ value: statusValue as UserStatusType })
+    return validStatuses.includes(statusValue)
   }
 
   public getValue(): UserStatusType {
