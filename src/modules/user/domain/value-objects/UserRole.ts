@@ -42,20 +42,16 @@ export class UserRole extends ValueObject<UserRoleProps> {
     return this.props.value
   }
 
+  public toString(): string {
+    return this.props.value
+  }
+
   public equals(vo?: ValueObject<UserRoleProps>): boolean {
     if (vo === null || vo === undefined || !(vo instanceof UserRole)) {
       return false
     }
 
     return this.props.value === vo.props.value
-  }
-
-  public toPrimitives(): string {
-    return this.props.value
-  }
-
-  public toString(): string {
-    return this.props.value
   }
 
   // factory methods for common roles
