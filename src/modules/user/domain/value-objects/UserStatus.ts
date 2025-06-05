@@ -63,4 +63,14 @@ export class UserStatus extends Status<UserStatusType> {
   public equals(other: UserStatus): boolean {
     return this.props.value === other.props.value
   }
+
+  // factory methods for status
+  public static readonly ACTIVE = UserStatus.create('active')
+  public static readonly INACTIVE = UserStatus.create('inactive')
+  public static readonly PENDING_EMAIL_VERIFICATION = UserStatus.create(
+    'pending_email_verification',
+  )
+  public static readonly PENDING_ADMIN_APPROVAL = UserStatus.create('pending_admin_approval')
+  public static readonly LOCKED = UserStatus.create('locked')
+  public static readonly SUSPENDED = UserStatus.create('suspended')
 }
