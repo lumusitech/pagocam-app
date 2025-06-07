@@ -6,9 +6,9 @@ import { User } from '../entities/UserBase'
 
 import { UserRole } from '../value-objects/UserRole'
 
-export class IsClientRoleSpecification implements Specification<User> {
+export class IsAdminRoleSpecification implements Specification<User> {
   isSatisfiedBy(user: User): boolean {
-    return user.getRole().equals(UserRole.CLIENT)
+    return user.getRole().equals(UserRole.ADMIN)
   }
 
   and(other: Specification<User>): Specification<User> {

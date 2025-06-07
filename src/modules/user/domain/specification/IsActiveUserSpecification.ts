@@ -8,7 +8,7 @@ import { UserStatus } from '../value-objects/UserStatus'
 
 export class IsActiveUserSpecification implements Specification<User> {
   isSatisfiedBy(user: User): boolean {
-    return user.getStatus()?.equals(UserStatus.ACTIVE) ?? false
+    return user.getStatus()?.equals(UserStatus.ACTIVE)
   }
 
   and(other: Specification<User>): Specification<User> {

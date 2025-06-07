@@ -1,68 +1,38 @@
-// src/users/domain/entities/Client.ts
-import { Address, Email, Name, Phone } from '../../../../shared/domain/value-objects' // Assuming these are in shared/domain/value-objects
-import { InvalidUserRoleError } from '../errors/InvalidUserRoleError'
+import { Address, Email, Name, Phone } from '@shared/domain/value-objects'
+import { CommonUserProps, UserBase, UserPrimitives } from '@user/domain/entities/UserBase'
+import { InvalidUserRoleError } from '@user/domain/errors/InvalidUserRoleError'
+import { UserId, UserPassword, UserRole, UserStatus } from '@user/domain/value-objects'
+import { LoyaltyPoints } from '@user/domain/value-objects/UserLoyaltyPoints'
 
-import { UserId, UserPassword, UserRole, UserStatus, UserStatusEnum } from '../value-objects' // Assuming these are in users/domain/value-objects
-import { LoyaltyPoints } from '../value-objects/UserLoyaltyPoints'
-import { CommonUserProps, UserBase, UserPrimitives } from './UserBase'
+export type SpecificClientPrimitives = {
+  loyaltyPoints: number
+}
 
-// Extend UserPrimitives for Client-specific fields
-export type ClientPrimitives = UserPrimitives & {
-  customerLoyaltyPoints?: number // Optional if default is 0 or not always present
+export type ClientPrimitives = UserPrimitives & SpecificClientPrimitives
+
+export type SpecificClientProps = {
+  loyaltyPoints: LoyaltyPoints
 }
 
 export class Client extends UserBase {
-  private customerLoyaltyPoints: LoyaltyPoints
+  private specificClientProps: SpecificClientProps
 
-  // Make constructor private/protected if you're using static factories
-  protected constructor(props: CommonUserProps, customerLoyaltyPoints: LoyaltyPoints) {
+  private constructor(commonUserProps: CommonUserProps, specificClientProps: SpecificClientProps) {
     // Ensure the role is explicitly Client for ClientUser
-    if (!props.role.equals(UserRole.CLIENT)) {
+    if (!commonUserProps.role.equals(UserRole.CLIENT)) {
       throw new InvalidUserRoleError('Client must have a CLIENT role.')
     }
-    super(props)
-    this.customerLoyaltyPoints = customerLoyaltyPoints
+    super(commonUserProps)
+    this.specificClientProps = specificClientProps
   }
 
-  /**
-   * Factory method to create a new Client entity from raw input.
-   * @param props The input properties for creating a client.
-   * @returns A new Client instance.
-   */
-  public static create(props: {
-    id: string
-    email: string
-    name: string
-    password: string // Plain password to be hashed
-    status: string
-    phone?: string
-    address?: any // Use a dedicated input type for Address if complex
-    initialLoyaltyPoints?: number // Raw number
-  }): Client {
-    // Create CommonUserProps by converting primitives to VOs
-    const commonProps: CommonUserProps = {
-      id: UserId.create(props.id),
-      email: Email.create(props.email),
-      name: Name.create(props.name),
-      password: UserPassword.create(props.password), // UserPassword handles hashing
-      role: UserRole.CLIENT, // Explicitly set role for Client
-      status: UserStatus.create(UserStatusEnum.ACTIVE),
-      phone: props.phone ? Phone.create(props.phone) : undefined,
-      address: props.address ? Address.create(props.address) : undefined,
-      createdAt: new Date(),
-      updatedAt: undefined,
-    }
-
-    const loyaltyPoints = LoyaltyPoints.create(props.initialLoyaltyPoints ?? 0) // Convert raw number to VO
-
-    return new Client(commonProps, loyaltyPoints)
+  public static create(
+    commonUserProps: CommonUserProps,
+    specificClientProps: SpecificClientProps,
+  ): Client {
+    return new Client(commonUserProps, specificClientProps)
   }
 
-  /**
-   * Factory method to reconstruct a Client entity from persisted data.
-   * @param props The persisted data in primitive format.
-   * @returns A reconstructed Client instance.
-   */
   public static fromPersistence(props: ClientPrimitives): Client {
     // Validate role from persistence
     if (props.role !== UserRole.CLIENT.getValue()) {
@@ -83,29 +53,25 @@ export class Client extends UserBase {
       updatedAt: props.updatedAt,
     }
 
-    const loyaltyPoints = LoyaltyPoints.fromPersistence(props.customerLoyaltyPoints ?? 0) // Reconstruct VO
+    const loyaltyPoints = LoyaltyPoints.fromPersistence(props.loyaltyPoints ?? 0)
 
-    return new Client(commonProps, loyaltyPoints)
+    return new Client(commonProps, { loyaltyPoints: loyaltyPoints })
   }
 
   public addLoyaltyPoints(points: number): void {
-    // Ensure points is a valid positive number if that's a rule
-    if (points < 0) {
-      throw new Error('Cannot add negative loyalty points.') // Or a specific domain error
-    }
-    this.customerLoyaltyPoints = this.customerLoyaltyPoints.add(points)
+    this.specificClientProps.loyaltyPoints = this.specificClientProps.loyaltyPoints.add(points)
     this.userProps.updatedAt = new Date()
   }
 
   public getLoyaltyPoints(): LoyaltyPoints {
-    return this.customerLoyaltyPoints
+    return this.specificClientProps.loyaltyPoints
   }
 
   // Override toPrimitives to include client-specific data
   public override toPrimitives(): ClientPrimitives {
     return {
       ...super.toPrimitives(),
-      customerLoyaltyPoints: this.customerLoyaltyPoints.getValue(),
+      loyaltyPoints: this.specificClientProps.loyaltyPoints.getValue(),
     }
   }
 }
