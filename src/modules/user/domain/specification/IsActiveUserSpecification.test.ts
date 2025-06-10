@@ -1,22 +1,24 @@
 import { Address, Email, Name, Phone } from '@shared/domain/value-objects'
-import { Client, SpecificClientProps } from '../entities/Client'
-import { CommonUserProps } from '../entities/UserBase'
-import { LoyaltyPoints, UserId, UserRole, UserStatus } from '../value-objects'
-import { UserPassword } from '../value-objects/UserPassword'
-import { IsActiveUserSpecification } from './IsActiveUserSpecification'
-import { IsAdminRoleSpecification } from './IsAdminRoleSpecification'
-import { IsClientRoleSpecification } from './IsClientRoleSpecification'
+import { User, UserProps } from '@user/domain/entities/User'
+
+import {
+  IsActiveUserSpecification,
+  IsAdminRoleSpecification,
+  IsClientRoleSpecification,
+} from '@user/domain/specification'
+import { UserId, UserRole, UserStatus } from '@user/domain/value-objects'
+import { UserPassword } from '@user/domain/value-objects/UserPassword'
 
 describe('IsActiveUserSpecification', () => {
   let activeUserState: IsActiveUserSpecification
-  let user: Client
+  let user: User
   let hashedPassword: string
 
   beforeEach(async () => {
     hashedPassword = 'dummy_hashed_password'
     activeUserState = new IsActiveUserSpecification()
 
-    const commonProps: CommonUserProps = {
+    const commonProps: UserProps = {
       id: UserId.create('1'),
       email: Email.create('some@email.com'),
       name: Name.create('John Doe'),
@@ -33,11 +35,7 @@ describe('IsActiveUserSpecification', () => {
       updatedAt: new Date(),
     }
 
-    const specificClientProps: SpecificClientProps = {
-      loyaltyPoints: LoyaltyPoints.create(10),
-    }
-
-    user = Client.create(commonProps, specificClientProps)
+    user = User.create(commonProps)
   })
 
   it('should create an instance', () => {

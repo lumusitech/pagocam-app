@@ -1,7 +1,14 @@
-import { Address, Email, Name, Phone } from '../../../../shared/domain/value-objects'
-import { UserId, UserPassword, UserRole, UserStatus } from '../value-objects'
+import { Address, Email, Name, Phone } from '@shared/domain/value-objects'
+import { UserStatusType } from '@user/domain/types/UserStatusType'
+import {
+  UserId,
+  UserPassword,
+  UserRole,
+  UserRoleEnum,
+  UserStatus,
+} from '@user/domain/value-objects'
 
-export type CommonUserProps = {
+export type UserProps = {
   id: UserId
   email: Email
   name: Name
@@ -14,7 +21,7 @@ export type CommonUserProps = {
   updatedAt?: Date
 }
 
-export type UserPrimitives = {
+export type UserPrimitivesProps = {
   id: string
   email: string
   name: string
@@ -33,32 +40,34 @@ export type UserPrimitives = {
     apartment?: string
     description?: string
   }
-  createdAt?: Date
+  createdAt: Date
   updatedAt?: Date
 }
 
-export interface User {
-  getId(): UserId
-  getEmail(): Email
-  getName(): Name
-  getRole(): UserRole
-  getStatus(): UserStatus
-  getCreatedAt(): Date
-  getUpdatedAt(): Date | undefined
-  toPrimitives(): UserPrimitives
-  toString(): string
-  equals(other: User): boolean
-}
-
-export abstract class UserBase implements User {
-  protected userProps: CommonUserProps
-
-  protected constructor(userProps: CommonUserProps) {
-    this.userProps = { ...userProps }
-
+export class User {
+  private constructor(private readonly userProps: UserProps) {
     if (!this.userProps.createdAt) {
       this.userProps.createdAt = new Date()
     }
+  }
+
+  public static create(userProps: UserProps): User {
+    return new User(userProps)
+  }
+
+  public static fromPersistence(userProps: UserPrimitivesProps): User {
+    return new User({
+      id: UserId.create(userProps.id),
+      email: Email.create(userProps.email),
+      name: Name.create(userProps.name),
+      password: UserPassword.create(userProps.password),
+      role: UserRole.create(userProps.role as UserRoleEnum),
+      status: UserStatus.create(userProps.status as UserStatusType),
+      phone: userProps.phone ? Phone.create(userProps.phone) : undefined,
+      address: userProps.address ? Address.create(userProps.address) : undefined,
+      createdAt: userProps.createdAt,
+      updatedAt: userProps.updatedAt ? userProps.updatedAt : undefined,
+    })
   }
 
   /////////////////////////////////////////////////////////
@@ -188,15 +197,15 @@ export abstract class UserBase implements User {
   /////////////////////////////////////////////////////////
 
   // Serialization methods
-  public toPrimitives(): UserPrimitives {
+  public toPrimitives(): UserPrimitivesProps {
     return {
       id: this.userProps.id.getValue(),
       email: this.userProps.email.getValue(),
       name: this.userProps.name.getValue(),
       password: this.userProps.password.getValue(),
       role: this.userProps.role.getValue(),
-      phone: this.userProps.phone?.getPhoneNumber(),
       status: this.userProps.status.getValue(),
+      phone: this.userProps.phone?.getValue(),
       address: this.userProps.address?.toPrimitives(),
       createdAt: this.userProps.createdAt,
       updatedAt: this.userProps.updatedAt,

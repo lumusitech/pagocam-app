@@ -1,5 +1,5 @@
-import { AndSpecification, NotSpecification, OrSpecification } from './'
-import { Specification } from './Specification'
+import { AndSpecification, NotSpecification, OrSpecification } from '@shared/domain/specification'
+import { Specification } from '@shared/domain/specification/Specification'
 
 class MockSpecification<T> implements Specification<T> {
   private result: boolean

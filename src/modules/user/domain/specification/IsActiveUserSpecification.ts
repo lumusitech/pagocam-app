@@ -1,10 +1,12 @@
-import { AndSpecification } from '../../../../shared/domain/specification/AndSpecification'
-import { NotSpecification } from '../../../../shared/domain/specification/NotSpecification'
-import { OrSpecification } from '../../../../shared/domain/specification/OrSpecification'
-import { Specification } from '../../../../shared/domain/specification/Specification'
-import { User } from '../entities/UserBase'
+import {
+  AndSpecification,
+  NotSpecification,
+  OrSpecification,
+  Specification,
+} from '@shared/domain/specification/'
+import { User } from '@user/domain/entities/User'
 
-import { UserStatus } from '../value-objects/UserStatus'
+import { UserStatus } from '@user/domain/value-objects/UserStatus'
 
 export class IsActiveUserSpecification implements Specification<User> {
   isSatisfiedBy(user: User): boolean {

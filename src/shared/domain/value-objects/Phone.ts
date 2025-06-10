@@ -29,7 +29,7 @@ export class Phone extends ValueObject<PhoneProps> {
     return new Phone({ value })
   }
 
-  getPhoneNumber(): string {
+  getValue(): string {
     return this.props.value
   }
 
@@ -42,6 +42,6 @@ export class Phone extends ValueObject<PhoneProps> {
   }
 
   equals(other: Phone): boolean {
-    return this.props.value === other.getPhoneNumber()
+    return this.props.value === other.getValue()
   }
 }

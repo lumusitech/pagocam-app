@@ -1,0 +1,6 @@
+export * from './IsActiveUserSpecification'
+export * from './IsAdminRoleSpecification'
+export * from './IsClientRoleSpecification'
+export * from './IsNotActiveUserSpecification'
+export * from './LastLoginBeforeDaysSpecification'
+export * from './RegisteredBeforeDaysSpecification'

@@ -6,6 +6,6 @@ This project is developed by [PAGOCAM](https://pagocam.com.ar)
 
 <!-- TODO: Add installation instructions and other useful information -->
 
-## Architecture - Hexagonal architecture
+## Architecture - Hexagonal architecture + DDD
 
 <!-- TODO: Add architecture diagram -->
