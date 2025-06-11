@@ -4,7 +4,7 @@ type FilterOperator = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'like' | 'in'
 //? 2. Defines an individual filter condition
 //* T is the type of the entity
 //* k extends from keyof T to ensure that the property exists in T
-//* V is the type of the property in T
+//* If only passed T entity and k is not passed, it will default to one key of T
 export type FilterCriterion<T, K extends keyof T = keyof T> = {
   property: K //* k property is a key of T
   operator?: FilterOperator //* The comparison operator (example: '=', '>', 'like').
@@ -31,19 +31,19 @@ export interface Repository<T, ID> {
 
 //! Example uses
 
-//? Búsqueda simple por igualdad:
+//? Simple search by equality
 // userRepository.matching({ property: 'email', value: Email.create('test@example.com') });
 
-//? Búsqueda con operador:
+//? Searching by operator
 // userRepository.matching({ property: 'age', operator: '>', value: 18 });
 
-//? Búsqueda combinada (AND):
+//? Comnbined search by AND
 // userRepository.matching(and: [
 //   { property: 'status', value: UserStatus.create('active') },
 //   { property: 'role', value: UserRole.create('client') }
 // ]);
 
-//? Búsqueda compleja (AND/OR):
+//? Complex query with AND and OR
 // userRepository.matching({
 //   and: [
 //     { property: 'status', value: UserStatus.create('active') },
