@@ -3,7 +3,7 @@ import { Phone } from './Phone'
 describe('Phone Value Object', () => {
   it('should create a valid phone number', () => {
     const phone = Phone.create('1134567890')
-    expect(phone.getPhoneNumber()).toBe('1134567890')
+    expect(phone.getValue()).toBe('1134567890')
   })
 
   it('should throw an error if phone number is invalid', () => {
@@ -17,7 +17,7 @@ describe('Phone Value Object', () => {
   it('should create a valid phone number from persistence', () => {
     const phoneNumber = '1134567890'
     const phone = Phone.fromPersistence(phoneNumber)
-    expect(phone.getPhoneNumber()).toBe(phoneNumber)
+    expect(phone.getValue()).toBe(phoneNumber)
     expect(phone).toBeInstanceOf(Phone)
   })
 
@@ -37,7 +37,7 @@ describe('Phone Value Object', () => {
 
   it('should return the phone number value', () => {
     const phone = Phone.create('1134567890')
-    expect(phone.getPhoneNumber()).toBe('1134567890')
+    expect(phone.getValue()).toBe('1134567890')
   })
 
   it('should be equal to another name VO with the same value', () => {

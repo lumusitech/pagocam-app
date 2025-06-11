@@ -18,7 +18,7 @@ describe('IsActiveUserSpecification', () => {
     hashedPassword = 'dummy_hashed_password'
     activeUserState = new IsActiveUserSpecification()
 
-    const commonProps: UserProps = {
+    const props: UserProps = {
       id: UserId.create('1'),
       email: Email.create('some@email.com'),
       name: Name.create('John Doe'),
@@ -35,7 +35,7 @@ describe('IsActiveUserSpecification', () => {
       updatedAt: new Date(),
     }
 
-    user = User.create(commonProps)
+    user = User.create(props)
   })
 
   it('should create an instance', () => {
